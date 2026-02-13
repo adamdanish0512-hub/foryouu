@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💖 Catch My Love 💖</title>
+
+<style>
+body {
+    margin: 0;
+    overflow: hidden;
+    font-family: 'Comic Sans MS', cursive;
+    background: linear-gradient(135deg, #ff758c, #ff7eb3);
+    color: white;
+    text-align: center;
+}
+
+h1 {
+    margin-top: 15px;
+}
+
+button {
+    padding: 12px 25px;
+    font-size: 18px;
+    border: none;
+    border-radius: 25px;
+    background: white;
+    color: #ff4d6d;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:hover {
+    background: #ffe6eb;
+}
+
+#gameCanvas {
+    background: rgba(255,255,255,0.1);
+    display: none;
+}
+
+#ui {
+    margin-top: 10px;
+    font-size: 18px;
+}
+
+#endScreen {
+    display: none;
+}
+
+.stars {
+    font-size: 30px;
+    color: gold;
+}
+
+.floating {
+    position: absolute;
+    font-size: 20px;
+    animation: floatUp 8s linear infinite;
+    opacity: 0.3;
+}
+
+@keyframes floatUp {
+    from { transform: translateY(100vh); }
+    to { transform: translateY(-10vh); }
+}
+</style>
+</head>
+
+<body>
+
+<div id="startScreen">
+    <h1>💖 Catch My Love 💖</h1>
+    <p>Move the basket and catch my hearts!</p>
+    <button onclick="startGame()">Start Our Love Story 💕</button>
+</div>
+
+<div id="ui">
+    ❤️ Score: <span id="score">0</span> | 
+    ⏳ Time: <span id="time">30</span>
+</div>
+
+<canvas id="gameCanvas" width="400" height="500"></canvas>
+
+<div id="endScreen">
+    <h1>💌 For You 💌</h1>
+    <p id="finalMessage"></p>
+    <div class="stars" id="stars"></div>
+    <button onclick="location.reload()">Play Again 💖</button>
+</div>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+let basket = { x: 160, y: 450, width: 80, height: 20 };
+let hearts = [];
+let score = 0;
+let timeLeft = 30;
+let gameRunning = false;
+
+function startGame() {
+    document.getElementById("startScreen").style.display = "none";
+    canvas.style.display = "block";
+    gameRunning = true;
+    spawnHearts();
+    setInterval(updateTimer, 1000);
+    requestAnimationFrame(gameLoop);
+}
+
+function spawnHearts() {
+    setInterval(() => {
+        let type = Math.random();
+        if (type < 0.7) {
+            hearts.push({ x: Math.random()*360, y: 0, type: "normal" });
+        } else if (type < 0.9) {
+            hearts.push({ x: Math.random()*360, y: 0, type: "gold" });
+        } else {
+            hearts.push({ x: Math.random()*360, y: 0, type: "broken" });
+        }
+    }, 800);
+}
+
+function updateTimer() {
+    if (!gameRunning) return;
+    timeLeft--;
+    document.getElementById("time").textContent = timeLeft;
+    if (timeLeft <= 0) endGame();
+}
+
+function gameLoop() {
+    if (!gameRunning) return;
+    ctx.clearRect(0,0,400,500);
+
+    ctx.fillStyle = "white";
+    ctx.fillRect(basket.x, basket.y, basket.width, basket.height);
+
+    hearts.forEach((heart, index) => {
+        heart.y += 3;
+
+        if (heart.type === "normal") ctx.fillText("💖", heart.x, heart.y);
+        if (heart.type === "gold") ctx.fillText("💛", heart.x, heart.y);
+        if (heart.type === "broken") ctx.fillText("💔", heart.x, heart.y);
+
+        if (heart.y > basket.y &&
+            heart.x > basket.x &&
+            heart.x < basket.x + basket.width) {
+
+            if (heart.type === "normal") score += 1;
+            if (heart.type === "gold") score += 3;
+            if (heart.type === "broken") score -= 2;
+
+            document.getElementById("score").textContent = score;
+            hearts.splice(index,1);
+        }
+
+        if (heart.y > 500) hearts.splice(index,1);
+    });
+
+    requestAnimationFrame(gameLoop);
+}
+
+document.addEventListener("mousemove", e => {
+    basket.x = e.clientX - canvas.offsetLeft - basket.width/2;
+});
+
+document.addEventListener("keydown", e => {
+    if (e.key === "ArrowLeft") basket.x -= 20;
+    if (e.key === "ArrowRight") basket.x += 20;
+});
+
+function endGame() {
+    gameRunning = false;
+    canvas.style.display = "none";
+    document.getElementById("endScreen").style.display = "block";
+
+    let message = "";
+    let stars = "";
+
+    if (score < 10) {
+        message = "Even if you missed some hearts, you’ll always have mine 💕";
+        stars = "⭐";
+    } else if (score < 25) {
+        message = "You caught so many hearts… just like you caught my heart 💘";
+        stars = "⭐⭐";
+    } else {
+        message = "You're my forever, my always, my everything 💍💖";
+        stars = "⭐⭐⭐ 🎉";
+        launchConfetti();
+    }
+
+    document.getElementById("finalMessage").textContent = message;
+    document.getElementById("stars").textContent = stars;
+}
+
+function launchConfetti() {
+    for(let i=0;i<100;i++){
+        let conf = document.createElement("div");
+        conf.innerHTML="🎉";
+        conf.style.position="absolute";
+        conf.style.left=Math.random()*100+"vw";
+        conf.style.top=Math.random()*100+"vh";
+        document.body.appendChild(conf);
+    }
+}
+</script>
+
+</body>
+</html>
